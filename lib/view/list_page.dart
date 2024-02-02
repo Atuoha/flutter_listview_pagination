@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
+import 'package:listview_pagination/business_logic/list/list_bloc.dart';
+import 'package:listview_pagination/injection_container.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+class ListPage extends StatefulWidget {
+  const ListPage({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<ListPage> createState() => _ListPageState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  bool isScrollingUp = false;
+class _ListPageState extends State<ListPage> {
+  var bloc = getIt<ListBloc>();
 
-  ScrollController scrollController = ScrollController();
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
