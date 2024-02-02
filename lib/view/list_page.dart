@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:listview_pagination/business_logic/list/list_bloc.dart';
+import 'package:listview_pagination/data/model/list_item.dart';
 import 'package:listview_pagination/injection_container.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../business_logic/list/list.dart';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key});
@@ -11,11 +15,19 @@ class ListPage extends StatefulWidget {
 }
 
 class _ListPageState extends State<ListPage> {
-  var bloc = getIt<ListBloc>();
+  ListBloc bloc = getIt<ListBloc>();
+  final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
+    bloc.add(FetchNextPageEvent());
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    bloc.close();
+    super.dispose();
   }
 
   @override
@@ -24,25 +36,92 @@ class _ListPageState extends State<ListPage> {
       appBar: AppBar(
         title: const Text('ListView Pagination'),
       ),
-      body: ListView(
-        children: List.generate(
-          200,
-          (index) => ListTile(
-            leading: CircleAvatar(
-              backgroundColor:
-                  Colors.primaries[index % Colors.primaries.length],
-              child: const Center(
-                child: Icon(
-                  Icons.numbers,
-                  color: Colors.white,
+      body:
+      BlocBuilder(
+          bloc: bloc,
+          builder: (context, ListState state) {
+            if (state.listItems.isEmpty) {
+              const Center(
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 10),
+                    Text(
+                      'List is empty',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
+              );
+            }
+
+            return NotificationListener<ScrollNotification>(
+              onNotification: handleScrollNotification,
+              child: ListView.builder(
+                itemCount: calculateListItemCount(state),
+                controller: scrollController,
+                itemBuilder: (context, index) {
+                  ListItem item = state.listItems[index];
+
+                  if (state.listItems.isEmpty) {
+                    return  const Center(
+                      child: Column(
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 10),
+                          Text(
+                            'List is empty',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return index >= state.listItems.length
+                      ?   const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(8.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        )
+                      : ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Color(item.colorCode),
+                            child: const Center(
+                              child: Icon(
+                                Icons.numbers,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          title: Text(item.title),
+                          subtitle: Text(item.subTitle),
+                        );
+                },
               ),
-            ),
-            title: Text('No $index'),
-            subtitle: Text('This is the item in No.$index'),
-          ),
-        ),
-      ),
+            );
+          }),
     );
+  }
+
+  bool handleScrollNotification(ScrollNotification scrollNotification) {
+    if (scrollNotification is ScrollEndNotification &&
+        scrollController.position.extentAfter == 0) {
+      bloc.add(FetchNextPageEvent());
+    }
+    return false;
+  }
+
+  int calculateListItemCount(ListState state) {
+    if (!state.hasReachedEndOfResult) {
+      return state.listItems.length;
+    } else {
+      return state.listItems.length + 1;
+    }
   }
 }

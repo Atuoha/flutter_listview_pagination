@@ -11,7 +11,7 @@ class ListDataSource {
 
   Future<BuiltList<ListItem>> getNextListPage() async {
     if (_show_page_count > PAGE_COUNT) {
-      NoNextPageException();
+      throw NoNextPageException();
     }
 
     // increment
@@ -37,4 +37,6 @@ class ListDataSource {
   }
 }
 
-class NoNextPageException implements Exception {}
+class NoNextPageException implements Exception {
+  NoNextPageException();
+}

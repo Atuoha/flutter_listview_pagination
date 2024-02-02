@@ -6,5 +6,5 @@ GetIt getIt = GetIt.instance;
 
 void initGetX() {
   getIt.registerLazySingleton(() => ListDataSource());
-  getIt.registerLazySingleton(() => ListBloc(listDataSource: getIt()));
+  getIt.registerLazySingleton(() => ListBloc(listDataSource: getIt<ListDataSource>()));
 }

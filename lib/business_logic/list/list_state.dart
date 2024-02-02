@@ -33,4 +33,6 @@ abstract class ListState implements Built<ListState, ListStateBuilder> {
         ..hasReachedEndOfResult = false,
     );
   }
+
+
 }
